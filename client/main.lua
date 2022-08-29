@@ -249,6 +249,10 @@ function HasKeys(plate)
 end
 exports('HasKeys', HasKeys)
 
+RegisterNetEvent('MojiaGarages:client:updateVehicleKey', function() -- Update vehicle key for qb-vehiclekey
+	GetKeys()
+end)
+
 function loadAnimDict(dict)
     while (not HasAnimDictLoaded(dict)) do
         RequestAnimDict(dict)
@@ -361,18 +365,22 @@ end
 function LockpickDoor(isAdvanced)
     local ped = PlayerPedId()
     local pos = GetEntityCoords(ped)
-    local vehicle = QBCore.Functions.GetClosestVehicle()
+    local vehicle = QBCore.Functions.GetClosestVehicle(pos)
 
     if vehicle == nil or vehicle == 0 then return end
     if HasKeys(QBCore.Functions.GetPlate(vehicle)) then return end
     if #(pos - GetEntityCoords(vehicle)) > 2.5 then return end
     if GetVehicleDoorLockStatus(vehicle) <= 0 then return end
 
+    QBCore.Functions.PlayAnim("veh@break_in@0h@p_m_one@", "low_force_entry_ds", true)
+    TriggerServerEvent('evidence:server:CreateCarFingerprint', QBCore.Functions.GetPlate(vehicle), "Driver Door")
+
     usingAdvanced = isAdvanced
     Config.LockPickDoorEvent()
 end
 
 function LockpickFinishCallback(success)
+    StopAnimTask(PlayerPedId(), "veh@break_in@0h@p_m_one@", "low_force_entry_ds", 1.0)
     local vehicle = QBCore.Functions.GetClosestVehicle()
 
     local chance = math.random()
@@ -422,6 +430,7 @@ function Hotwire(vehicle, plate)
     }, {}, {}, function() -- Done
         StopAnimTask(ped, "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0)
         TriggerServerEvent('hud:server:GainStress', math.random(1, 4))
+        TriggerServerEvent('evidence:server:SetIgnitionTamper', true, vehicle)
         if (math.random() <= Config.HotwireChance) then
             TriggerServerEvent('qb-vehiclekeys:server:AcquireVehicleKeys', plate)
         else
@@ -520,6 +529,7 @@ function AttemptPoliceAlert(type)
             chance = Config.PoliceNightAlertChance
         end
         if math.random() <= chance then
+            -- TODO: ps-disptatch
            TriggerServerEvent('police:server:policeAlert', Lang:t("info.palert") .. type)
         end
         AlertSend = true
@@ -548,3 +558,8 @@ function DrawText3D(x, y, z, text)
     DrawRect(0.0, 0.0 + 0.0125, 0.017 + factor, 0.03, 0, 0, 0, 75)
     ClearDrawOrigin()
 end
+
+-- r14Evidence needed, do not touch
+RegisterNetEvent('qb-vehiclekeys:client:UpdateLastPicked', function(entity)
+    lastPickedVehicle = entity
+end) 
