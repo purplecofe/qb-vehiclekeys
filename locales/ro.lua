@@ -24,9 +24,9 @@ local Translations = {
         skeys = '~g~[H]~w~ - Cloneaza cheile',
         tlock = 'Blocheaza/Deblocheaza vehiculul',
         palert = 'Furt auto in desfasurare. Tip: ',
+        engine = 'Porneste/Opreste motorul',
     },
     addcom = {
-        engine = 'Porneste/Opreste motorul',
         givekeys = 'Dai cheile vehiculului unei alte persoane. Daca nu se precizeaza ID-ul, cheile se duc celei mai apropiate persoane de tine.',
         givekeys_id = 'ID',
         givekeys_id_help = 'ID-ul jucatorului caruia vrei sa-i dai cheile',
@@ -44,7 +44,10 @@ local Translations = {
 
 }
 
-Lang = Locale:new({
-    phrases = Translations,
-    warnOnMissing = true
-})
+if GetConvar('qb_locale', 'en') == 'ro' then
+    Lang = Locale:new({
+        phrases = Translations,
+        warnOnMissing = true,
+        fallbackLang = Lang,
+    })
+end
