@@ -397,7 +397,7 @@ function LockpickFinishCallback(success)
 
     else
         TriggerServerEvent('hud:server:GainStress', math.random(1, 4))
-        AttemptPoliceAlert("steal")
+        exports['ps-dispatch']:VehicleTheft(vehicle)
     end
 
     if usingAdvanced then
@@ -418,34 +418,20 @@ function Hotwire(vehicle, plate)
 
     SetVehicleAlarm(vehicle, true)
     SetVehicleAlarmTimeLeft(vehicle, hotwireTime)
-    QBCore.Functions.Progressbar("hotwire_vehicle", Lang:t("progress.hskeys"), hotwireTime, false, true, {
-        disableMovement = true,
-        disableCarMovement = true,
-        disableMouse = false,
-        disableCombat = true
-    }, {
-        animDict = "anim@amb@clubhouse@tutorial@bkr_tut_ig3@",
-        anim = "machinic_loop_mechandplayer",
-        flags = 16
-    }, {}, {}, function() -- Done
-        StopAnimTask(ped, "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0)
-        TriggerServerEvent('hud:server:GainStress', math.random(1, 4))
-        TriggerServerEvent('evidence:server:SetIgnitionTamper', true, vehicle)
-        if (math.random() <= Config.HotwireChance) then
+    QBCore.Functions.PlayAnim("anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 16)
+    exports['ps-ui']:Circle(function(success)
+        if success then
             TriggerServerEvent('qb-vehiclekeys:server:AcquireVehicleKeys', plate)
         else
             QBCore.Functions.Notify(Lang:t("notify.fvlockpick"), "error")
+            exports['ps-dispatch']:VehicleTheft(vehicle)
         end
         Wait(Config.TimeBetweenHotwires)
         IsHotwiring = false
-    end, function() -- Cancel
         StopAnimTask(ped, "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0)
-        IsHotwiring = false
-    end)
-    SetTimeout(10000, function()
-        AttemptPoliceAlert("steal")
-    end)
-    IsHotwiring = false
+        TriggerServerEvent('hud:server:GainStress', math.random(1, 4))
+        TriggerServerEvent('evidence:server:SetIgnitionTamper', true, vehicle)
+    end,4 ,8)
 end
 
 function CarjackVehicle(target)
@@ -510,7 +496,7 @@ function CarjackVehicle(target)
             end
             isCarjacking = false
             Wait(2000)
-            AttemptPoliceAlert("carjack")
+            AttemptPoliceAlert("carjack", vehicle)
             Wait(Config.DelayBetweenCarjackings)
             canCarjack = true
         end
@@ -522,15 +508,14 @@ function CarjackVehicle(target)
     end)
 end
 
-function AttemptPoliceAlert(type)
+function AttemptPoliceAlert(type, vehicle)
     if not AlertSend then
         local chance = Config.PoliceAlertChance
         if GetClockHours() >= 1 and GetClockHours() <= 6 then
             chance = Config.PoliceNightAlertChance
         end
         if math.random() <= chance then
-            -- TODO: ps-disptatch
-           TriggerServerEvent('police:server:policeAlert', Lang:t("info.palert") .. type)
+            exports['ps-dispatch']:CarJacking(vehicle)
         end
         AlertSend = true
         SetTimeout(Config.AlertCooldown, function()
