@@ -299,10 +299,10 @@ end
 function AreKeysJobShared(veh)
     local vehName = GetDisplayNameFromVehicleModel(GetEntityModel(veh))
     local vehPlate = GetVehicleNumberPlateText(veh)
-    local jobName = QBCore.Functions.GetPlayerData().job.name
+    local jobType = QBCore.Functions.GetPlayerData().job.type
     local onDuty = QBCore.Functions.GetPlayerData().job.onduty
     for job, v in pairs(Config.SharedKeys) do
-        if job == jobName then
+        if job == jobType then
 	    if Config.SharedKeys[job].requireOnduty and not onDuty then return false end
 	    for _, vehicle in pairs(v.vehicles) do
 	        if string.upper(vehicle) == string.upper(vehName) then
@@ -400,6 +400,7 @@ function LockpickDoor(isAdvanced)
 
     QBCore.Functions.PlayAnim("veh@break_in@0h@p_m_one@", "low_force_entry_ds", true)
     TriggerServerEvent('evidence:server:CreateCarFingerprint', QBCore.Functions.GetPlate(vehicle), "Driver Door")
+    TriggerServerEvent("evidence:server:CreateLockTampering", pos)
 
     usingAdvanced = isAdvanced
     Config.LockPickDoorEvent()
@@ -411,6 +412,7 @@ function LockpickFinishCallback(success)
 
     local chance = math.random()
     if success then
+        exports['ps-dispatch']:VehicleTheft(vehicle)
         TriggerServerEvent('hud:server:GainStress', math.random(1, 4))
         lastPickedVehicle = vehicle
 
@@ -420,10 +422,8 @@ function LockpickFinishCallback(success)
             QBCore.Functions.Notify(Lang:t("notify.vlockpick"), 'success')
             TriggerServerEvent('qb-vehiclekeys:server:setVehLockState', NetworkGetNetworkIdFromEntity(vehicle), 1)
         end
-
     else
         TriggerServerEvent('hud:server:GainStress', math.random(1, 4))
-        exports['ps-dispatch']:VehicleTheft(vehicle)
     end
 
     if usingAdvanced then
@@ -456,7 +456,7 @@ function Hotwire(vehicle, plate)
         IsHotwiring = false
         StopAnimTask(ped, "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0)
         TriggerServerEvent('hud:server:GainStress', math.random(1, 4))
-        TriggerServerEvent('evidence:server:SetIgnitionTamper', true, vehicle)
+        TriggerServerEvent('evidence:server:SetIgnitionTamper', true, plate)
     end,4 ,8)
 end
 

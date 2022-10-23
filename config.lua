@@ -8,7 +8,7 @@ Config.LockNPCParkedCars = true -- Lock state for NPC parked cars [true = locked
 Config.RemoveLockpickNormal = 0.5 -- Chance to remove lockpick on fail
 Config.RemoveLockpickAdvanced = 0.2 -- Chance to remove advanced lockpick on fail
 Config.LockPickDoorEvent = function() -- This function is called when a player attempts to lock pick a vehicle
-    exports['ps-ui']:Circle(LockpickFinishCallback, 5, 10) -- NumberOfCircles, MS
+    exports['ps-ui']:Circle(LockpickFinishCallback, 4, math.random(80, 90)) -- NumberOfCircles, MS
 end
 
 -- Carjack Settings
@@ -41,19 +41,30 @@ Config.PoliceNightAlertChance = 0.50 -- Chance of alerting police at night (time
 
 -- Job Settings
 Config.SharedKeys = { -- Share keys amongst employees. Employees can lock/unlock any job-listed vehicle
-    ['police'] = { -- Job name
-        requireOnduty = false,
+    ['leo'] = { -- Job name
+        requireOnduty = true,
         vehicles = {
-	    'police', -- Vehicle model
-	    'police2', -- Vehicle model
-	}
+            'npolvic', -- Vehicle model
+            'npolexp', -- Vehicle model
+            'npolvette',
+            'npolchal',
+            'npolchar',
+            'npolstang',
+            'as350',
+        }
     },
-
+    ['ems'] = {
+        requireOnduty = true,
+        vehicles = {
+            'emsnspeedo',
+            'emsaw139',
+        }
+    },
     ['mechanic'] = {
         requireOnduty = false,
         vehicles = {
             'towtruck',
-	}
+        }
     }
 }
 
